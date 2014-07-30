@@ -7,14 +7,21 @@ import "encoding/base64"
 import "net/http"
 import "encoding/json"
 import "bytes"
+import "strings"
 
 type Postdata struct {
 	Name     string
+	Type     string
 	Contents string
+}
+
+type ResponseData struct {
+	FileName string
 }
 
 func main() {
 	args := os.Args
+	url := "http://10.0.0.111:9898/"
 
 	if len(args) < 2 {
 		fmt.Println("Dude, gives file!")
@@ -28,20 +35,27 @@ func main() {
 
 	encodeddata := base64.StdEncoding.EncodeToString(buffer)
 
-	postdata := &Postdata{args[1], encodeddata}
+	postdata := &Postdata{args[1], "", "data:;base64," + encodeddata}
 
 	buf, _ := json.Marshal(postdata)
-	body := bytes.NewBuffer(buf)
-	r, err := http.Post("http://127.0.0.1:8082/test", "application/json", body)
+	temp := string(buf)
+	formattedstring := strings.ToLower(temp[:40]) + temp[40:] // superugly, needs lowercase on name. type and contents.
+	body := bytes.NewBufferString(formattedstring)
+
+	r, err := http.Post(url+"upload", "application/json", body)
 	if err != nil {
 		fmt.Println("%s", err)
-		panic(err)
 	}
 	response, err := ioutil.ReadAll(r.Body)
+	r.Body.Close()
+
 	if err != nil {
 		fmt.Println("%s", err)
 		panic(err)
 	}
-	fmt.Println(string(response))
+
+	res := &ResponseData{}
+	json.Unmarshal([]byte(response), &res)
+	fmt.Println(url + "d/" + res.FileName)
 
 }
