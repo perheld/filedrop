@@ -7,12 +7,11 @@ import "encoding/base64"
 import "net/http"
 import "encoding/json"
 import "bytes"
-import "strings"
 
 type Postdata struct {
-	Name     string
-	Type     string
-	Contents string
+	Name     string `json:"name"`
+	Type     string `json:"type"`
+	Contents string `json:"contents"`
 }
 
 type ResponseData struct {
@@ -21,7 +20,7 @@ type ResponseData struct {
 
 func main() {
 	args := os.Args
-	url := "http://10.0.0.111:9898/"
+	url := "http://somexampleurl/"
 
 	if len(args) < 2 {
 		fmt.Println("Dude, gives file!")
@@ -39,8 +38,7 @@ func main() {
 
 	buf, _ := json.Marshal(postdata)
 	temp := string(buf)
-	formattedstring := strings.ToLower(temp[:40]) + temp[40:] // superugly, needs lowercase on name. type and contents.
-	body := bytes.NewBufferString(formattedstring)
+	body := bytes.NewBufferString(temp)
 
 	r, err := http.Post(url+"upload", "application/json", body)
 	if err != nil {
